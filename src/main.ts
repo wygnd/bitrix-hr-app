@@ -2,7 +2,7 @@ import "./assets/main.css";
 
 import { createApp } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
-import b24UiPlugin from "@bitrix24/b24ui-nuxt/vue-plugin";
+import uiPlugin from "@bitrix24/b24ui-nuxt/vue-plugin";
 
 import App from "./App.vue";
 
@@ -13,7 +13,7 @@ const router = createRouter({
   history: createWebHistory(),
 });
 
-app.use(b24UiPlugin);
+app.use(uiPlugin);
 app.use(router);
 
 app.mount("#app");
