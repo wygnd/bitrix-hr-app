@@ -5,11 +5,11 @@ import PlayCircleIcon from '@bitrix24/b24icons-vue/main/PlayCircleIcon'
 <template>
   <B24App>
     <div class="flex flex-col items-center justify-center gap-16 h-screen">
-      <h1 class="font-b24-secondary text-8xl font-light">
+      <h1 class="font-b24-secondary text-h1 sm:text-8xl font-light">
         Bitrix24 UI - Vue Playground
       </h1>
 
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <B24Button
           rounded
           label="Documentation"
@@ -22,6 +22,8 @@ import PlayCircleIcon from '@bitrix24/b24icons-vue/main/PlayCircleIcon'
         <B24Button
           rounded
           label="GitHub"
+          color="link"
+          depth="dark"
           to="https://github.com/bitrix24/b24ui"
           target="_blank"
         />
