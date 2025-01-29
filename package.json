@@ -1,5 +1,5 @@
 {
-  "name": "bitrix24-ui-vue",
+  "name": "starter-b24ui-vue",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,11 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@bitrix24/b24icons-vue": "latest",
-    "@bitrix24/b24ui-nuxt": "latest",
-    "tailwindcss": "4.0.0",
-    "@tailwindcss/postcss": "4.0.0",
-    "@tailwindcss/vite": "4.0.0",
+    "@bitrix24/b24icons-vue": "^1.0.3",
+    "@bitrix24/b24ui-nuxt": "^0.1.3",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
