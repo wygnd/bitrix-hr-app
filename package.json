@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@bitrix24/b24icons-vue": "^1.0.3",
-    "@bitrix24/b24ui-nuxt": "^0.2.2",
+    "@bitrix24/b24ui-nuxt": "^0.2.3",
     "@tailwindcss/postcss": "^4.0.4",
     "@tailwindcss/vite": "^4.0.4",
     "tailwindcss": "^4.0.4",
