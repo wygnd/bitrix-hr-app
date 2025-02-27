@@ -11,15 +11,15 @@
   "dependencies": {
     "@bitrix24/b24icons-vue": "^1.0.3",
     "@bitrix24/b24ui-nuxt": "^0.3.2",
-    "@tailwindcss/vite": "^4.0.8",
-    "tailwindcss": "^4.0.8",
-    "vue": "^3.5.13",
+    "@tailwindcss/vite": "^4.0.9",
+    "tailwindcss": "^4.0.9",
+    "vue": "3.5.13",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
     "typescript": "^5.7.3",
-    "vite": "^6.1.1",
+    "vite": "^6.2.0",
     "vue-tsc": "^2.2.0"
   }
 }
