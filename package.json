@@ -10,15 +10,15 @@
   },
   "dependencies": {
     "@bitrix24/b24icons-vue": "^1.0.3",
-    "@bitrix24/b24ui-nuxt": "^0.4.2",
-    "@tailwindcss/vite": "^4.0.10",
-    "tailwindcss": "^4.0.9",
+    "@bitrix24/b24ui-nuxt": "^0.4.5",
+    "@tailwindcss/vite": "^4.0.12",
+    "tailwindcss": "^4.0.12",
     "vue": "3.5.13",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
     "typescript": "^5.7.3",
-    "vite": "^6.2.0"
+    "vite": "^6.2.1"
   }
 }
