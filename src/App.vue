@@ -6,7 +6,7 @@ import PlayCircleIcon from '@bitrix24/b24icons-vue/main/PlayCircleIcon'
   <B24App>
     <div class="flex flex-col items-center justify-center gap-16 h-screen">
       <h1 class="font-b24-secondary text-h1 sm:text-8xl font-light">
-        Bitrix24 UI - Vue Playground
+        Bitrix24 UI - Vue Starter
       </h1>
 
       <div class="flex flex-wrap items-center gap-2">
