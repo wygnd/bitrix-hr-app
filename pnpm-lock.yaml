@@ -12,8 +12,8 @@ importers:
         specifier: ^1.0.5
         version: 1.0.5(vue@3.5.13(typescript@5.8.3))
       '@bitrix24/b24ui-nuxt':
-        specifier: ^0.6.6
-        version: 0.6.6(@babel/parser@7.26.7)(axios@1.7.9)(embla-carousel@8.6.0)(typescript@5.8.3)(vite@6.3.2(jiti@2.4.2)(lightningcss@1.29.2)(yaml@2.7.0))(vue-router@4.5.0(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
+        specifier: ^0.6.7
+        version: 0.6.7(@babel/parser@7.26.7)(axios@1.7.9)(embla-carousel@8.6.0)(typescript@5.8.3)(vite@6.3.2(jiti@2.4.2)(lightningcss@1.29.2)(yaml@2.7.0))(vue-router@4.5.0(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
       '@tailwindcss/vite':
         specifier: ^4.1.4
         version: 4.1.4(vite@6.3.2(jiti@2.4.2)(lightningcss@1.29.2)(yaml@2.7.0))
@@ -82,8 +82,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@bitrix24/b24ui-nuxt@0.6.6':
-    resolution: {integrity: sha512-zivwVEGz+Z5VMibiQ6B8g9tUHdi6GVrhFypy4V/LMZ/XFUVkFqhH1xqB8joda2CAmEmBrOVpx3WAmURMCio9lQ==}
+  '@bitrix24/b24ui-nuxt@0.6.7':
+    resolution: {integrity: sha512-vrazXFvsahZqxDyLrpXj+aHueu91udCZfcY7nSfH3hzAFXYn18Mo1ghtlDMjH5V1yYu1kznD6fLu61zH5rlA6Q==}
     hasBin: true
     peerDependencies:
       '@inertiajs/vue3': ^2.0.8
@@ -2019,7 +2019,7 @@ snapshots:
     transitivePeerDependencies:
       - ts-node
 
-  '@bitrix24/b24ui-nuxt@0.6.6(@babel/parser@7.26.7)(axios@1.7.9)(embla-carousel@8.6.0)(typescript@5.8.3)(vite@6.3.2(jiti@2.4.2)(lightningcss@1.29.2)(yaml@2.7.0))(vue-router@4.5.0(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))':
+  '@bitrix24/b24ui-nuxt@0.6.7(@babel/parser@7.26.7)(axios@1.7.9)(embla-carousel@8.6.0)(typescript@5.8.3)(vite@6.3.2(jiti@2.4.2)(lightningcss@1.29.2)(yaml@2.7.0))(vue-router@4.5.0(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))':
     dependencies:
       '@bitrix24/b24icons-vue': 1.0.5(vue@3.5.13(typescript@5.8.3))
       '@bitrix24/b24style': 1.0.1
