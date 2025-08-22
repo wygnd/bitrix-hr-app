@@ -8,7 +8,7 @@ import PlayCircleIcon from '@bitrix24/b24icons-vue/main/PlayCircleIcon'
       :use-light-content="false"
       :b24ui="{ container: 'mt-0' }"
     >
-      <div class="flex flex-col items-start sm:items-center justify-center gap-[10px] h-[calc(100vh-10px)]">
+      <div class="flex flex-col items-start sm:items-center justify-center gap-[10px] h-[calc(100vh-50px)]">
         <ProseH1 class="sm:text-8xl font-light">
           Bitrix24 UI - Vue Starter
         </ProseH1>
