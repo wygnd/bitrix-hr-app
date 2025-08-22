@@ -12,20 +12,20 @@
   },
   "dependencies": {
     "@bitrix24/b24icons-vue": "^2.0.2",
-    "@bitrix24/b24ui-nuxt": "^0.7.0",
-    "@tailwindcss/vite": "^4.1.11",
-    "tailwindcss": "^4.1.11",
-    "vue": "^3.5.17",
+    "@bitrix24/b24ui-nuxt": "^1.0.1",
+    "@tailwindcss/vite": "^4.1.12",
+    "tailwindcss": "^4.1.12",
+    "vue": "^3.5.19",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.0",
-    "eslint": "^9.30.0",
-    "eslint-plugin-vue": "^10.2.0",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.35.1",
-    "vite": "^7.0.0",
-    "vue-tsc": "^2.2.10"
+    "@vitejs/plugin-vue": "^6.0.1",
+    "eslint": "^9.33.0",
+    "eslint-plugin-vue": "^10.4.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.40.0",
+    "vite": "^7.1.3",
+    "vue-tsc": "^3.0.6"
   },
-  "packageManager": "pnpm@10.12.4"
+  "packageManager": "pnpm@10.15.0"
 }
