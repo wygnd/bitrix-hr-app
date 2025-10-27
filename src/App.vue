@@ -18,7 +18,7 @@ import PlayCircleIcon from '@bitrix24/b24icons-vue/main/PlayCircleIcon'
             label="Documentation"
             color="air-primary-copilot"
             :icon="PlayCircleIcon"
-            to="https://bitrix24.github.io/b24ui/guide/installation-vue.html"
+            to="https://bitrix24.github.io/b24ui/docs/getting-started/installation/vue/"
             target="_blank"
           />
 
