@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import {onMounted, ref} from 'vue'
-import type {DescriptionListItem} from '@bitrix24/b24ui-nuxt'
 import {API} from "../assets/api.ts";
+import {BITRIX_VACANCIES_KEY} from "../common/config.ts";
 
-const items = ref<DescriptionListItem[]>([]);
+const vacancies = ref<IVacancy[]>([]);
+
 
 interface IVacancy {
   id: string;
@@ -11,20 +12,24 @@ interface IVacancy {
   alternate_url: string;
 }
 
+
 onMounted(() => {
-  fetchVacancies();
+  const vacanciesFromLocalStorage = localStorage.getItem(BITRIX_VACANCIES_KEY);
+
+  if (vacanciesFromLocalStorage) {
+    vacancies.value = JSON.parse(vacanciesFromLocalStorage) as IVacancy[];
+    return;
+  }
+  fetchVacanciesFromHH();
 })
 
-const fetchVacancies = async () => {
+const fetchVacanciesFromHH = async () => {
   try {
     const {data} = await API.get<IVacancy[]>('headhunter/vacancies/active');
 
-    data.forEach((vacancy) => {
-      items.value.push({
-        label: vacancy.name,
-        description: vacancy.alternate_url,
-      });
-    })
+    vacancies.value = data;
+
+    localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify(data));
 
   } catch (error) {
     console.log('EXECUTION ERROR: ', error);
@@ -35,7 +40,12 @@ const fetchVacancies = async () => {
 </script>
 
 <template>
-  <B24DescriptionList :items="items"/>
+  <ul v-if="vacancies.length > 0">
+<!--    <li v-for="vacancy in vacancies" :id="vacancy.id">-->
+<!--      <a :href="vacancy.alternate_url">{{ vacancy.name }}</a>-->
+<!--      <B24SelectMenu v-model="targetVacancy" :items="vacancies" :id="targetVacancy + vacancy.id"/>-->
+<!--    </li>-->
+  </ul>
 </template>
 
 <style scoped>

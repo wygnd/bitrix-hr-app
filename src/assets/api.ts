@@ -1,10 +1,11 @@
 import axios from 'axios';
+import {BACKEND_API_TOKEN, BACKEND_API_URL} from "../common/config.ts";
 
 const API = axios.create({
-    baseURL: import.meta.env.VITE_BACKEND_API_URL,
+    baseURL: BACKEND_API_URL,
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': `bga ${import.meta.env.VITE_BACKEND_API_TOKEN}`
+        'Authorization': `bga ${BACKEND_API_TOKEN}`
     }
 })
 
