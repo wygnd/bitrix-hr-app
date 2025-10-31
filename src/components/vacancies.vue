@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref} from 'vue'
-import axios from 'axios'
 import type {DescriptionListItem} from '@bitrix24/b24ui-nuxt'
+import {API} from "../assets/api.ts";
 
 const items = ref<DescriptionListItem[]>([]);
 
@@ -17,11 +17,7 @@ onMounted(() => {
 
 const fetchVacancies = async () => {
   try {
-    const {data} = await axios.get<IVacancy[]>(import.meta.env.VITE_BACKEND_API_URL + 'headhunter/vacancies/active', {
-      headers: {
-        'Authorization': `bga ${import.meta.env.VITE_BACKEND_API_TOKEN}`
-      }
-    });
+    const {data} = await API.get<IVacancy[]>('headhunter/vacancies/active');
 
     data.forEach((vacancy) => {
       items.value.push({
