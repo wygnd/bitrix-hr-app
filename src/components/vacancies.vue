@@ -103,9 +103,9 @@ async function handleSubmitButton() {
 
   if (!originalVacanciesDecoded) return void alert('Не удалось отправить форму');
 
-  const originalVacanciesStrorage = JSON.parse(originalVacanciesDecoded) as IVacanciesStorage;
+  const originalVacanciesStorage = JSON.parse(originalVacanciesDecoded) as IVacanciesStorage;
 
-  const {vacancies: originalVacancies, expires, fieldItems} = originalVacanciesStrorage;
+  const {vacancies: originalVacancies, expires, fieldItems} = originalVacanciesStorage;
 
   Object.entries(targetVacancies.value).forEach(([key, items]) => {
     const vacancyIndex = originalVacancies.findIndex(({id}) => id === key);
@@ -159,12 +159,12 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
       Вакансии</h1>
     <ul>
       <li v-for="({id, url, label, items}) in vacancies" :id="id"
-          class="mb-4 flex w-full justify-between gap-10 p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+          class="mb-2 flex w-full justify-between gap-10 p-3 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <div>
           <a :href="url" target="_blank" class="font-medium text-blue-6  dark:text-blue-500 hover:underline">{{
               label
             }}</a>
-          <ul v-if="items.length > 0" class="flex flex-wrap items-center gap-1.5 text-gray-900 dark:text-white">
+          <ul v-if="items.length > 0" class="mt-2 flex flex-wrap items-center gap-1.5 text-gray-900 dark:text-white">
             <li class="text-base">Выбрано:</li>
             <li v-for="({ID, VALUE}) in items" :id="ID" class="text-base">
               {{ VALUE }}
