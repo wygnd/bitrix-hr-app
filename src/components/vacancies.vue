@@ -7,6 +7,7 @@ import type {SelectMenuItem} from '@bitrix24/b24ui-nuxt'
 const fieldBitrixItems = ref<SelectMenuItem[]>([]);
 const vacancies = ref<IVacancy[]>([]);
 const targetVacancies = ref<Record<string, SelectMenuItem[]>>({});
+const alert = ref<boolean>(false);
 
 type IVacancyItem = {
   ID: string;
@@ -156,6 +157,10 @@ async function reinitComponent() {
   localStorage.removeItem(BITRIX_VACANCIES_KEY);
 
   await initComponent();
+  alert.value = true;
+  setTimeout(() => {
+    alert.value = false;
+  }, 3000)
 }
 
 </script>
@@ -202,6 +207,7 @@ async function reinitComponent() {
       </B24Button>
     </div>
   </section>
+
 </template>
 
 <style scoped>
