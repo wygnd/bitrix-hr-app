@@ -154,10 +154,10 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
 </script>
 
 <template>
-  <section class="pt-10 pb-10">
+  <section class="pt-10 pb-10" v-if="vacancies.length > 0">
     <h1 class="mb-6 text-4xl font-extrabold leading-none tracking-tight  md:text-5xl lg:text-6xl dark:text-white text-center">
       Вакансии</h1>
-    <ul v-if="vacancies.length > 0">
+    <ul>
       <li v-for="({id, url, label, items}) in vacancies" :id="id"
           class="mb-4 flex w-full justify-between gap-10 p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <div>
@@ -165,8 +165,8 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
               label
             }}</a>
           <ul v-if="items.length > 0" class="flex flex-wrap items-center gap-1.5 text-gray-900 dark:text-white">
-            <li>Выбрано:</li>
-            <li v-for="({ID, VALUE}) in items" :id="ID">
+            <li class="text-base">Выбрано:</li>
+            <li v-for="({ID, VALUE}) in items" :id="ID" class="text-base">
               {{ VALUE }}
             </li>
           </ul>
@@ -185,7 +185,8 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
         />
       </li>
     </ul>
-    <B24Button class="ml-auto" size="xl" color="air-primary" loading-auto @click="handleSubmitButton">Сохранить
+    <B24Button class="flex mx-auto w-3/12" size="xl" color="air-primary" loading-auto @click="handleSubmitButton">
+      Сохранить
     </B24Button>
   </section>
 </template>
