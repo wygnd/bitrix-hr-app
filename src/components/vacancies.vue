@@ -53,12 +53,8 @@ onMounted(async () => {
     } = JSON.parse(vacanciesFromLocalStorage) as IVacanciesStorage;
 
     if (new Date(expires) > now) {
-      vacancies.value = storageVacancies;
-      fieldBitrixItems.value = storageFieldItems.map(({ID, VALUE}) => ({
-        label: VALUE,
-        value: ID,
-        color: 'air-primary',
-      })) as SelectMenuItem[];
+      setVacancies(storageVacancies);
+      setFieldBitrixItems(storageFieldItems)
       return;
     }
 
@@ -75,12 +71,8 @@ onMounted(async () => {
       expires: now.setDate(now.getDate() + 1),
     } as IVacanciesStorage));
 
-    vacancies.value = vacanciesFromBackend;
-    fieldBitrixItems.value = fieldItemsFromBackend.map(({ID, VALUE}) => ({
-      label: VALUE,
-      value: ID,
-      color: 'air-primary',
-    })) as SelectMenuItem[];
+    setVacancies(vacanciesFromBackend);
+    setFieldBitrixItems(fieldItemsFromBackend)
   }
 })
 
@@ -115,8 +107,6 @@ async function handleSubmitButton() {
 
   const {vacancies: originalVacancies, expires, fieldItems} = originalVacanciesStrorage;
 
-  console.log('Bro, i try save new vacancies: before ', originalVacancies);
-
   Object.entries(targetVacancies.value).forEach(([key, items]) => {
     const vacancyIndex = originalVacancies.findIndex(({id}) => id === key);
 
@@ -141,9 +131,24 @@ async function handleSubmitButton() {
       expires: expires,
       fieldItems: fieldItems
     } as IVacanciesStorage));
+
+    setVacancies(originalVacancies);
+    setFieldBitrixItems(fieldItems)
   }
 
   return data;
+}
+
+function setVacancies(items: IVacancy[]) {
+  vacancies.value = items;
+}
+
+function setFieldBitrixItems(items: IVacancyItem[]) {
+  fieldBitrixItems.value = items.map(({ID, VALUE}) => ({
+    label: VALUE,
+    value: ID,
+    color: 'air-primary',
+  })) as SelectMenuItem[];
 }
 
 </script>
