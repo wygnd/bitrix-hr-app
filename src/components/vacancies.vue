@@ -2,50 +2,187 @@
 import {onMounted, ref} from 'vue'
 import {API} from "../assets/api.ts";
 import {BITRIX_VACANCIES_KEY} from "../common/config.ts";
+import type {SelectMenuItem} from '@bitrix24/b24ui-nuxt'
 
+const fieldBitrixItems = ref<SelectMenuItem[]>([]);
 const vacancies = ref<IVacancy[]>([]);
+const targetVacancies = ref<Record<string, SelectMenuItem[]>>({});
 
+type IVacancyItem = {
+  ID: string;
+  VALUE: string;
+}
 
 interface IVacancy {
   id: string;
-  name: string;
-  alternate_url: string;
+  label: string;
+  url: string;
+  items: IVacancyItem[];
 }
 
+interface IFieldItem {
+  type: string;
+  isRequired: boolean;
+  isReadOnly: boolean;
+  isImmutable: boolean;
+  isMultiple: boolean;
+  isDynamic: boolean;
+  items?: IVacancyItem[];
+  title: string;
+  listLabel: string;
+  formLabel: string;
+  filterLabel: string;
+  settings: Record<string, any>;
+}
 
-onMounted(() => {
+interface IVacanciesStorage {
+  expires: number;
+  fieldItems: IVacancyItem[];
+  vacancies: IVacancy[];
+}
+
+onMounted(async () => {
   const vacanciesFromLocalStorage = localStorage.getItem(BITRIX_VACANCIES_KEY);
+  const now = new Date();
 
   if (vacanciesFromLocalStorage) {
-    vacancies.value = JSON.parse(vacanciesFromLocalStorage) as IVacancy[];
-    return;
+    const {
+      vacancies: storageVacancies,
+      fieldItems: storageFieldItems,
+      expires
+    } = JSON.parse(vacanciesFromLocalStorage) as IVacanciesStorage;
+
+    if (new Date(expires) > now) {
+      vacancies.value = storageVacancies;
+      fieldBitrixItems.value = storageFieldItems.map(({ID, VALUE}) => ({
+        label: VALUE,
+        value: ID,
+        color: 'air-primary',
+      })) as SelectMenuItem[];
+      return;
+    }
+
   }
-  fetchVacanciesFromHH();
+
+  const vacanciesFromBackend = await fetchVacanciesFromHH();
+  const fieldItemsFromBackend = await fetchFieldItems("UF_CRM_1638524000");
+
+
+  if (vacanciesFromBackend && vacanciesFromBackend.length > 0 && fieldItemsFromBackend && fieldItemsFromBackend.length > 0) {
+    localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify({
+      fieldItems: fieldItemsFromBackend,
+      vacancies: vacanciesFromBackend,
+      expires: now.setDate(now.getDate() + 1),
+    } as IVacanciesStorage));
+
+    vacancies.value = vacanciesFromBackend;
+    fieldBitrixItems.value = fieldItemsFromBackend.map(({ID, VALUE}) => ({
+      label: VALUE,
+      value: ID,
+      color: 'air-primary',
+    })) as SelectMenuItem[];
+  }
 })
 
 const fetchVacanciesFromHH = async () => {
   try {
-    const {data} = await API.get<IVacancy[]>('headhunter/vacancies/active');
-
-    vacancies.value = data;
-
-    localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify(data));
-
+    const {data} = await API.get<IVacancy[]>('integration/headhunter/vacancies');
+    return data;
   } catch (error) {
     console.log('EXECUTION ERROR: ', error);
   }
+}
 
+const fetchFieldItems = async (fieldId: string) => {
+  try {
+    const {data} = await API.get<IFieldItem>(`deals/fields/field/${fieldId}`);
+
+    if (!data.items || data.items.length === 0) return [];
+
+    return data.items
+  } catch (error) {
+    console.log('EXECUTION ERROR: ', error);
+  }
+}
+
+
+async function handleSubmitButton() {
+  const originalVacanciesDecoded = localStorage.getItem(BITRIX_VACANCIES_KEY);
+
+  if (!originalVacanciesDecoded) return void alert('Не удалось отправить форму');
+
+  const originalVacanciesStrorage = JSON.parse(originalVacanciesDecoded) as IVacanciesStorage;
+
+  const {vacancies: originalVacancies, expires, fieldItems} = originalVacanciesStrorage;
+
+  console.log('Bro, i try save new vacancies: before ', originalVacancies);
+
+  Object.entries(targetVacancies.value).forEach(([key, items]) => {
+    const vacancyIndex = originalVacancies.findIndex(({id}) => id === key);
+
+    if (vacancyIndex === -1) return;
+
+    originalVacancies[vacancyIndex].items = items.map((item): SelectMenuItem => ({
+      ID: item!.value,
+      VALUE: item!.label,
+    })) as IVacancyItem[];
+  })
+
+
+  const {data} = await API.post<boolean>('integration/headhunter/vacancies', originalVacancies, {
+    headers: {
+      "Content-Type": 'application/json',
+    }
+  });
+
+  if (data) {
+    localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify({
+      vacancies: originalVacancies,
+      expires: expires,
+      fieldItems: fieldItems
+    } as IVacanciesStorage));
+  }
+
+  return data;
 }
 
 </script>
 
 <template>
-  <ul v-if="vacancies.length > 0">
-<!--    <li v-for="vacancy in vacancies" :id="vacancy.id">-->
-<!--      <a :href="vacancy.alternate_url">{{ vacancy.name }}</a>-->
-<!--      <B24SelectMenu v-model="targetVacancy" :items="vacancies" :id="targetVacancy + vacancy.id"/>-->
-<!--    </li>-->
-  </ul>
+  <section class="pt-10 pb-10">
+    <h1 class="mb-6 text-4xl font-extrabold leading-none tracking-tight  md:text-5xl lg:text-6xl dark:text-white text-center">
+      Вакансии</h1>
+    <ul v-if="vacancies.length > 0">
+      <li v-for="({id, url, label, items}) in vacancies" :id="id"
+          class="mb-4 flex w-full justify-between gap-10 p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+        <div>
+          <a :href="url" target="_blank" class="font-medium text-blue-6  dark:text-blue-500 hover:underline">{{
+              label
+            }}</a>
+          <ul v-if="items.length > 0" class="flex flex-wrap items-center gap-1.5 text-gray-900 dark:text-white">
+            <li>Выбрано:</li>
+            <li v-for="({ID, VALUE}) in items" :id="ID">
+              {{ VALUE }}
+            </li>
+          </ul>
+
+        </div>
+        <B24SelectMenu
+            :id="id"
+            v-model="targetVacancies[id]"
+            :items="fieldBitrixItems.map(vacancy => ({...vacancy, vacancyId: id}))"
+            multiple
+            placeholder="Выберите вакансии"
+            color="air-primary"
+            highlight
+            size="md"
+            class="w-[180px]"
+        />
+      </li>
+    </ul>
+    <B24Button class="ml-auto" size="xl" color="air-primary" loading-auto @click="handleSubmitButton">Сохранить
+    </B24Button>
+  </section>
 </template>
 
 <style scoped>

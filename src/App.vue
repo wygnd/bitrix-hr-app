@@ -4,6 +4,8 @@ import Vacancies from './components/vacancies.vue';
 
 <template>
   <B24App>
-    <Vacancies/>
+    <B24Container>
+      <Vacancies/>
+    </B24Container>
   </B24App>
 </template>

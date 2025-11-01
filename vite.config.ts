@@ -10,7 +10,7 @@ export default defineConfig({
             colorMode: false,
             b24ui: {
                 container: {
-                    base: 'w-full max-w-[1280px] mx-auto px-[22px]'
+                    base: 'w-full max-w-[1280px] px-[22px]'
                 },
                 prose: {
                     h1: {
