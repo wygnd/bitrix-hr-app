@@ -41,7 +41,7 @@ interface IVacanciesStorage {
   vacancies: IVacancy[];
 }
 
-onMounted(async () => {
+const initComponent = async () => {
   const vacanciesFromLocalStorage = localStorage.getItem(BITRIX_VACANCIES_KEY);
   const now = new Date();
 
@@ -74,7 +74,9 @@ onMounted(async () => {
     setVacancies(vacanciesFromBackend);
     setFieldBitrixItems(fieldItemsFromBackend)
   }
-})
+}
+
+onMounted(initComponent)
 
 const fetchVacanciesFromHH = async () => {
   try {
@@ -96,7 +98,6 @@ const fetchFieldItems = async (fieldId: string) => {
     console.log('EXECUTION ERROR: ', error);
   }
 }
-
 
 async function handleSubmitButton() {
   const originalVacanciesDecoded = localStorage.getItem(BITRIX_VACANCIES_KEY);
@@ -151,10 +152,16 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
   })) as SelectMenuItem[];
 }
 
+async function reinitComponent() {
+  localStorage.removeItem(BITRIX_VACANCIES_KEY);
+
+  await initComponent();
+}
+
 </script>
 
 <template>
-  <section class="pt-10 pb-10" v-if="vacancies.length > 0">
+  <section class="pt-1 pb-10" v-if="vacancies.length > 0">
     <h1 class="mb-6 text-4xl font-extrabold leading-none tracking-tight  md:text-5xl lg:text-6xl dark:text-white text-center">
       Вакансии</h1>
     <ul>
@@ -164,7 +171,8 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
           <a :href="url" target="_blank" class="font-medium text-blue-6  dark:text-blue-500 hover:underline">{{
               label
             }}</a>
-          <ul v-if="items.length > 0" class="mt-2 flex flex-wrap items-center gap-1.5 text-gray-900 dark:text-white">
+          <ul v-if="items.length > 0"
+              class="mt-2 flex flex-wrap items-center gap-2 gap-y-0.5 text-gray-900 dark:text-white">
             <li class="text-base">Выбрано:</li>
             <li v-for="({ID, VALUE}) in items" :id="ID" class="text-base">
               {{ VALUE }}
@@ -185,9 +193,14 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
         />
       </li>
     </ul>
-    <B24Button class="flex mx-auto w-3/12" size="xl" color="air-primary" loading-auto @click="handleSubmitButton">
-      Сохранить
-    </B24Button>
+    <div class="flex justify-between">
+      <B24Button class="w-3/12" size="xl" color="air-primary" loading-auto @click="handleSubmitButton">
+        Сохранить
+      </B24Button>
+      <B24Button class="w-3/12" size="xl" color="air-selection" @click="reinitComponent">
+        Обновить
+      </B24Button>
+    </div>
   </section>
 </template>
 
