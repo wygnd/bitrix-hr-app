@@ -6,6 +6,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log(placementInfo);
     } catch (error) {
-        // document.querySelector('#app').remove();
+        document.querySelector('#app').remove();
     }
 });

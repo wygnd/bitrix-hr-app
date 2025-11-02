@@ -3,6 +3,7 @@ import {onMounted, ref} from 'vue'
 import {API} from "../assets/api.ts";
 import {BITRIX_VACANCIES_KEY} from "../common/config.ts";
 import type {SelectMenuItem} from '@bitrix24/b24ui-nuxt'
+import Cross20Icon from '@bitrix24/b24icons-vue/actions/Cross20Icon'
 
 const fieldBitrixItems = ref<SelectMenuItem[]>([]);
 const vacancies = ref<IVacancy[]>([]);
@@ -153,6 +154,10 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
   })) as SelectMenuItem[];
 }
 
+const handleClearClick = (event: Event) => {
+  console.log('handleClearClick', event);
+}
+
 async function reinitComponent() {
   localStorage.removeItem(BITRIX_VACANCIES_KEY);
 
@@ -185,17 +190,27 @@ async function reinitComponent() {
           </ul>
 
         </div>
-        <B24SelectMenu
-            :id="id"
-            v-model="targetVacancies[id]"
-            :items="fieldBitrixItems.map(vacancy => ({...vacancy, vacancyId: id}))"
-            multiple
-            placeholder="Выберите вакансии"
-            color="air-primary"
-            highlight
-            size="md"
-            class="w-[180px]"
-        />
+        <div class="flex items-center gap-2">
+          <B24SelectMenu
+              :id="id"
+              v-model="targetVacancies[id]"
+              :items="fieldBitrixItems.map(vacancy => ({...vacancy, vacancyId: id}))"
+              multiple
+              placeholder="Выберите вакансии"
+              color="air-primary"
+              highlight
+              size="md"
+              class="w-[180px]"
+          />
+          <B24Button
+              size="md"
+              color="air-primary-alert"
+              activeColor="air-secondary-alert"
+              title="Очистить"
+              :data-vacancy="id"
+              @click="handleClearClick"
+          />
+        </div>
       </li>
     </ul>
     <div class="flex justify-between">
