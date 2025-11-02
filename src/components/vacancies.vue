@@ -249,7 +249,8 @@ async function reinitComponent() {
               id="clear-target-vacancies"
               @click="handleClickClearTargetVacancies"
               :icon="TrashcanIcon"
-              :disabled="!targetVacancies[id]?.length > 0"
+              :disabled="!(targetVacancies[id]?.length > 0)"
+              color="air-secondary-alert"
           />
         </div>
       </li>
