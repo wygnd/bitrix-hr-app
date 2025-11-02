@@ -3,12 +3,12 @@ import {onMounted, ref} from 'vue'
 import {API} from "../assets/api.ts";
 import {BITRIX_VACANCIES_KEY} from "../common/config.ts";
 import type {SelectMenuItem} from '@bitrix24/b24ui-nuxt'
-import Cross20Icon from '@bitrix24/b24icons-vue/actions/Cross20Icon'
+import TrashcanIcon from '@bitrix24/b24icons-vue/outline/TrashcanIcon'
 
 const fieldBitrixItems = ref<SelectMenuItem[]>([]);
 const vacancies = ref<IVacancy[]>([]);
 const targetVacancies = ref<Record<string, SelectMenuItem[]>>({});
-const alert = ref<boolean>(false);
+const isAlert = ref<boolean>(false);
 
 type IVacancyItem = {
   ID: string;
@@ -54,12 +54,11 @@ const initComponent = async () => {
       expires
     } = JSON.parse(vacanciesFromLocalStorage) as IVacanciesStorage;
 
-    if (new Date(expires) > now) {
+    if (new Date(expires) > now && storageVacancies.length > 0 && storageFieldItems.length > 0) {
       setVacancies(storageVacancies);
       setFieldBitrixItems(storageFieldItems)
       return;
     }
-
   }
 
   const vacanciesFromBackend = await fetchVacanciesFromHH();
@@ -102,18 +101,17 @@ const fetchFieldItems = async (fieldId: string) => {
 }
 
 async function handleSubmitButton() {
-  const originalVacanciesDecoded = localStorage.getItem(BITRIX_VACANCIES_KEY);
-
-  if (!originalVacanciesDecoded) return void alert('Не удалось отправить форму');
-
-  const originalVacanciesStorage = JSON.parse(originalVacanciesDecoded) as IVacanciesStorage;
-
-  const {vacancies: originalVacancies, expires, fieldItems} = originalVacanciesStorage;
+  const {value: originalVacancies} = vacancies;
 
   Object.entries(targetVacancies.value).forEach(([key, items]) => {
     const vacancyIndex = originalVacancies.findIndex(({id}) => id === key);
 
     if (vacancyIndex === -1) return;
+
+    if (items.length === 0) {
+      originalVacancies[vacancyIndex].items = [];
+      return;
+    }
 
     originalVacancies[vacancyIndex].items = items.map((item): SelectMenuItem => ({
       ID: item!.value,
@@ -122,24 +120,35 @@ async function handleSubmitButton() {
   })
 
 
-  const {data} = await API.post<boolean>('integration/headhunter/vacancies', originalVacancies, {
+  const {data: wasSaved} = await API.post<boolean>('integration/headhunter/vacancies', originalVacancies, {
     headers: {
       "Content-Type": 'application/json',
     }
   });
 
-  if (data) {
-    localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify({
-      vacancies: originalVacancies,
-      expires: expires,
-      fieldItems: fieldItems
-    } as IVacanciesStorage));
+  if (!wasSaved) return;
 
-    setVacancies(originalVacancies);
-    setFieldBitrixItems(fieldItems)
+  const originalVacanciesDecoded = localStorage.getItem(BITRIX_VACANCIES_KEY);
+  let expires = Date.now();
+  let fieldItems: IVacancyItem[] = [];
+
+  if (originalVacanciesDecoded) {
+    const originalVacanciesStorage = JSON.parse(originalVacanciesDecoded) as IVacanciesStorage;
+
+    expires = originalVacanciesStorage.expires;
+    fieldItems = originalVacanciesStorage.fieldItems;
   }
 
-  return data;
+
+  localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify({
+    vacancies: originalVacancies,
+    expires: expires,
+    fieldItems: fieldItems
+  } as IVacanciesStorage));
+
+  setVacancies(originalVacancies);
+  setFieldBitrixItems(fieldItems)
+
 }
 
 function setVacancies(items: IVacancy[]) {
@@ -154,17 +163,39 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
   })) as SelectMenuItem[];
 }
 
-const handleClearClick = (event: Event) => {
-  console.log('handleClearClick', event);
+const handleClickClearTargetVacancies = (event: Event) => {
+  const button = event?.target!.ownerDocument!.activeElement as HTMLButtonElement;
+
+  if (!('vacancy' in button.dataset) || !button.dataset.vacancy) return;
+
+  const vacancyId = button.dataset.vacancy;
+
+  if (!(vacancyId in targetVacancies.value)) return;
+
+  targetVacancies.value[vacancyId] = [];
+}
+
+const handleClickClearExistsVacancies = (event: Event) => {
+  const element = event.target as HTMLSpanElement
+
+  if (!('vacancy' in element.dataset) || !element.dataset.vacancy) return;
+
+  const vacancyId = element.dataset.vacancy;
+
+  const vacancyIndex = vacancies.value.findIndex(v => v.id === vacancyId);
+
+  if (vacancyIndex === -1) return;
+
+  vacancies.value[vacancyIndex].items = [];
 }
 
 async function reinitComponent() {
   localStorage.removeItem(BITRIX_VACANCIES_KEY);
 
   await initComponent();
-  alert.value = true;
+  isAlert.value = true;
   setTimeout(() => {
-    alert.value = false;
+    isAlert.value = false;
   }, 3000)
 }
 
@@ -173,24 +204,33 @@ async function reinitComponent() {
 <template>
   <section class="pt-1 pb-10" v-if="vacancies.length > 0">
     <h1 class="mb-6 text-4xl font-extrabold leading-none tracking-tight  md:text-5xl lg:text-6xl dark:text-white text-center">
-      Вакансии</h1>
+      Вакансии
+    </h1>
     <ul>
       <li v-for="({id, url, label, items}) in vacancies" :id="id"
           class="mb-2 flex w-full justify-between gap-10 p-3 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <div>
-          <a :href="url" target="_blank" class="font-medium text-blue-6  dark:text-blue-500 hover:underline">{{
-              label
-            }}</a>
+          <a
+              :href="url"
+              target="_blank"
+              class="font-medium text-blue-6 dark:text-blue-500 hover:underline"
+              title="Перейти к вакансии на hh.ru">
+            {{ label }}
+          </a>
           <ul v-if="items.length > 0"
-              class="mt-2 flex flex-wrap items-center gap-2 gap-y-0.5 text-gray-900 dark:text-white">
-            <li class="text-base">Выбрано:</li>
-            <li v-for="({ID, VALUE}) in items" :id="ID" class="text-base">
+              class="mt-2 flex flex-wrap items-center gap-2 gap-y-0.5 text-black dark:text-white">
+            <li class="text-base font-bold">Выбрано:</li>
+            <li v-for="({ID, VALUE}) in items" :id="ID" class="text-base text-black ">
               {{ VALUE }}
+            </li>
+            <li class="text-base font-bold w-full">
+              <span class="underline cursor-pointer hover:text-red transition-colors" :data-vacancy="id"
+                    @click="handleClickClearExistsVacancies">Очистить</span>
             </li>
           </ul>
 
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 relative" id="check">
           <B24SelectMenu
               :id="id"
               v-model="targetVacancies[id]"
@@ -201,14 +241,15 @@ async function reinitComponent() {
               highlight
               size="md"
               class="w-[180px]"
+              title="Выбрать новые вакансии"
           />
           <B24Button
-              size="md"
-              color="air-primary-alert"
-              activeColor="air-secondary-alert"
               title="Очистить"
               :data-vacancy="id"
-              @click="handleClearClick"
+              id="clear-target-vacancies"
+              @click="handleClickClearTargetVacancies"
+              :icon="TrashcanIcon"
+              :disabled="!targetVacancies[id]?.length > 0"
           />
         </div>
       </li>
