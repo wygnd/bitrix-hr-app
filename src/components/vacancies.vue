@@ -104,27 +104,23 @@ async function handleSubmitButton() {
   const {value: originalVacancies} = vacancies;
 
   Object.entries(targetVacancies.value).forEach(([key, items]) => {
+    if (items.length === 0) return;
+
     const vacancyIndex = originalVacancies.findIndex(({id}) => id === key);
 
     if (vacancyIndex === -1) return;
-
-    if (items.length === 0) {
-      originalVacancies[vacancyIndex].items = [];
-      return;
-    }
 
     originalVacancies[vacancyIndex].items = items.map((item): SelectMenuItem => ({
       ID: item!.value,
       VALUE: item!.label,
     })) as IVacancyItem[];
+
+    // clear items in select
+    targetVacancies.value[key] = [];
   })
 
 
-  const {data: wasSaved} = await API.post<boolean>('integration/headhunter/vacancies', originalVacancies, {
-    headers: {
-      "Content-Type": 'application/json',
-    }
-  });
+  const {data: wasSaved} = await API.post<boolean>('integration/headhunter/vacancies', originalVacancies);
 
   if (!wasSaved) return;
 
@@ -148,7 +144,6 @@ async function handleSubmitButton() {
 
   setVacancies(originalVacancies);
   setFieldBitrixItems(fieldItems)
-
 }
 
 function setVacancies(items: IVacancy[]) {
@@ -197,6 +192,8 @@ async function reinitComponent() {
   setTimeout(() => {
     isAlert.value = false;
   }, 3000)
+
+  return true;
 }
 
 </script>
@@ -206,10 +203,10 @@ async function reinitComponent() {
     <h1 class="mb-6 text-4xl font-extrabold leading-none tracking-tight  md:text-5xl lg:text-6xl dark:text-white text-center">
       Вакансии
     </h1>
-    <ul>
+    <ul class="grid grid-cols-3 gap-2.5">
       <li v-for="({id, url, label, items}) in vacancies" :id="id"
-          class="mb-2 flex w-full justify-between gap-10 p-3 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-        <div>
+          class="flex flex-col w-full items-start justify-between gap-10 p-3 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+        <div class="">
           <a
               :href="url"
               target="_blank"
@@ -230,7 +227,7 @@ async function reinitComponent() {
           </ul>
 
         </div>
-        <div class="flex items-center gap-2 relative" id="check">
+        <div class="flex items-center justify-between gap-2 relative w-full" id="check">
           <B24SelectMenu
               :id="id"
               v-model="targetVacancies[id]"
@@ -255,11 +252,11 @@ async function reinitComponent() {
         </div>
       </li>
     </ul>
-    <div class="flex justify-between">
+    <div class="flex justify-between mt-10">
       <B24Button class="w-3/12" size="xl" color="air-primary" loading-auto @click="handleSubmitButton">
         Сохранить
       </B24Button>
-      <B24Button class="w-3/12" size="xl" color="air-selection" @click="reinitComponent">
+      <B24Button class="w-3/12" size="xl" color="air-selection" loading-auto @click="reinitComponent">
         Обновить
       </B24Button>
     </div>
