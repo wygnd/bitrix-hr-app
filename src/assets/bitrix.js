@@ -1,11 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
 	try {
-		let BX24 = await B24Js.initializeB24Frame();
+		// let BX24 = await B24Js.initializeB24Frame();
 		
-		await BX24.call('im.message.add', {
-			DIALOG_ID: "376",
-			MESSAGE: "Tets message",
-		});
+		console.log(123);
 		
 	} catch(error) {
 		document.querySelector('#app').remove();
