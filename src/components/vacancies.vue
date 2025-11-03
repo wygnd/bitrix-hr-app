@@ -203,9 +203,9 @@ async function reinitComponent() {
     <h1 class="mb-6 text-4xl font-extrabold leading-none tracking-tight  md:text-5xl lg:text-6xl dark:text-white text-center">
       Вакансии
     </h1>
-    <ul class="grid grid-cols-3 gap-2.5">
+    <ul class="grid grid-cols-4 gap-2.5">
       <li v-for="({id, url, label, items}) in vacancies" :id="id"
-          class="flex flex-col w-full items-start justify-between gap-10 p-3 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+          class="flex flex-col w-full items-start justify-between gap-5 p-3 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <div class="">
           <a
               :href="url"
@@ -257,7 +257,7 @@ async function reinitComponent() {
         Сохранить
       </B24Button>
       <B24Button class="w-3/12" size="xl" color="air-selection" loading-auto @click="reinitComponent">
-        Обновить
+        Отменить изменения
       </B24Button>
     </div>
   </section>
