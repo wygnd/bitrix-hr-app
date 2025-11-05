@@ -7,7 +7,7 @@ import TrashcanIcon from '@bitrix24/b24icons-vue/outline/TrashcanIcon'
 
 const fieldBitrixItems = ref<SelectMenuItem[]>([]);
 const vacancies = ref<IVacancy[]>([]);
-const targetVacancies = ref<Record<string, SelectMenuItem[]>>({});
+const targetVacancies = ref<Record<string, SelectMenuItem | null>>({});
 const isAlert = ref<boolean>(false);
 
 type IVacancyItem = {
@@ -19,7 +19,7 @@ interface IVacancy {
   id: string;
   label: string;
   url: string;
-  items: IVacancyItem[];
+  bitrixField: IVacancyItem | null;
 }
 
 interface IFieldItem {
@@ -103,17 +103,17 @@ const fetchFieldItems = async (fieldId: string) => {
 async function handleSubmitButton() {
   const {value: originalVacancies} = vacancies;
 
-  Object.entries(targetVacancies.value).forEach(([key, items]) => {
-    if (items.length === 0) return;
+  Object.entries(targetVacancies.value).forEach(([key, item]) => {
+    if (!item) return;
 
     const vacancyIndex = originalVacancies.findIndex(({id}) => id === key);
 
     if (vacancyIndex === -1) return;
 
-    originalVacancies[vacancyIndex].items = items.map((item): SelectMenuItem => ({
+    originalVacancies[vacancyIndex].bitrixField = {
       ID: item!.value,
       VALUE: item!.label,
-    })) as IVacancyItem[];
+    } as IVacancyItem;
 
     // clear items in select
     targetVacancies.value[key] = [];
@@ -155,6 +155,18 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
     label: VALUE,
     value: ID,
     color: 'air-primary',
+    // onSelect: (e: Event) => {
+    //   const item = e!.detail.value as SelectMenuItem;
+    //
+    //   const vacancyIndex = vacancies.value.findIndex(v => v.id === item!.vacancyId);
+    //
+    //   if (!vacancyIndex) return;
+    //
+    //   vacancies.value[vacancyIndex].bitrixField = {
+    //     ID: item!.value,
+    //     VALUE: item!.label,
+    //   }
+    // }
   })) as SelectMenuItem[];
 }
 
@@ -167,7 +179,7 @@ const handleClickClearTargetVacancies = (event: Event) => {
 
   if (!(vacancyId in targetVacancies.value)) return;
 
-  targetVacancies.value[vacancyId] = [];
+  targetVacancies.value[vacancyId] = null;
 }
 
 const handleClickClearExistsVacancies = (event: Event) => {
@@ -181,7 +193,7 @@ const handleClickClearExistsVacancies = (event: Event) => {
 
   if (vacancyIndex === -1) return;
 
-  vacancies.value[vacancyIndex].items = [];
+  vacancies.value[vacancyIndex].bitrixField = null;
 }
 
 async function reinitComponent() {
@@ -195,7 +207,6 @@ async function reinitComponent() {
 
   return true;
 }
-
 </script>
 
 <template>
@@ -204,7 +215,7 @@ async function reinitComponent() {
       Вакансии
     </h1>
     <ul class="grid grid-cols-3 gap-2.5">
-      <li v-for="({id, url, label, items}) in vacancies" :id="id"
+      <li v-for="({id, url, label, bitrixField}) in vacancies" :id="id"
           class="flex flex-col w-full items-start justify-between gap-5 p-3 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <div class="">
           <a
@@ -214,11 +225,11 @@ async function reinitComponent() {
               title="Перейти к вакансии на hh.ru">
             {{ label }}
           </a>
-          <ul v-if="items.length > 0"
+          <ul v-if="bitrixField"
               class="mt-2 flex flex-wrap items-center gap-2 gap-y-0.5 text-black dark:text-white">
             <li class="text-base font-bold">Выбрано:</li>
-            <li v-for="({ID, VALUE}) in items" :id="ID" class="text-base text-black ">
-              {{ VALUE }}
+            <li :id="bitrixField.ID" class="text-base text-black ">
+              {{ bitrixField.VALUE }}
             </li>
             <li class="text-base font-bold w-full">
               <span class="underline cursor-pointer hover:text-red transition-colors" :data-vacancy="id"
@@ -232,7 +243,6 @@ async function reinitComponent() {
               :id="id"
               v-model="targetVacancies[id]"
               :items="fieldBitrixItems.map(vacancy => ({...vacancy, vacancyId: id}))"
-              multiple
               placeholder="Выберите вакансии"
               color="air-primary"
               highlight
@@ -246,7 +256,7 @@ async function reinitComponent() {
               id="clear-target-vacancies"
               @click="handleClickClearTargetVacancies"
               :icon="TrashcanIcon"
-              :disabled="!(targetVacancies[id]?.length > 0)"
+              :disabled="!(id in targetVacancies)"
               color="air-secondary-alert"
           />
         </div>
