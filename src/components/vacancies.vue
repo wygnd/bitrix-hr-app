@@ -257,7 +257,7 @@ async function reinitComponent() {
         Сохранить
       </B24Button>
       <B24Button class="w-3/12" size="xl" color="air-selection" loading-auto @click="reinitComponent">
-        Отменить изменения
+        Обновить
       </B24Button>
     </div>
   </section>
