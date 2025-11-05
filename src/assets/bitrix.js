@@ -5,6 +5,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		console.log(123);
 		
 	} catch(error) {
-		document.querySelector('#app').remove();
+		// document.querySelector('#app').remove();
 	}
 });
