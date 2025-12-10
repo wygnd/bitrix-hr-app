@@ -2,9 +2,9 @@ FROM node:lts-alpine AS build-stage
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN pnpm install
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 FROM nginx:stable-alpine as prod-stage
 COPY --from=build-stage /app/dist /app
