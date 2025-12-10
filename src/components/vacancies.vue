@@ -4,11 +4,13 @@ import {API} from "../assets/api.ts";
 import {BITRIX_VACANCIES_KEY} from "../common/config.ts";
 import type {SelectMenuItem} from '@bitrix24/b24ui-nuxt'
 import TrashcanIcon from '@bitrix24/b24icons-vue/outline/TrashcanIcon'
+import CheckIcon from '@bitrix24/b24icons-vue/main/CheckIcon'
+import CrossIcon from '@bitrix24/b24icons-vue/actions/Cross50Icon'
 
 const fieldBitrixItems = ref<SelectMenuItem[]>([]);
 const vacancies = ref<IVacancy[]>([]);
 const targetVacancies = ref<Record<string, SelectMenuItem | null>>({});
-const isAlert = ref<boolean>(false);
+const toast = useToast();
 
 type IVacancyItem = {
   ID: string;
@@ -44,106 +46,127 @@ interface IVacanciesStorage {
 }
 
 const initComponent = async () => {
-  const vacanciesFromLocalStorage = localStorage.getItem(BITRIX_VACANCIES_KEY);
-  const now = new Date();
+  try {
+    const vacanciesFromLocalStorage = localStorage.getItem(BITRIX_VACANCIES_KEY);
+    const now = new Date();
 
-  if (vacanciesFromLocalStorage) {
-    const {
-      vacancies: storageVacancies,
-      fieldItems: storageFieldItems,
-      expires
-    } = JSON.parse(vacanciesFromLocalStorage) as IVacanciesStorage;
+    if (vacanciesFromLocalStorage) {
+      const {
+        vacancies: storageVacancies,
+        fieldItems: storageFieldItems,
+        expires
+      } = JSON.parse(vacanciesFromLocalStorage) as IVacanciesStorage;
 
-    if (new Date(expires) > now && storageVacancies.length > 0 && storageFieldItems.length > 0) {
-      setVacancies(storageVacancies);
-      setFieldBitrixItems(storageFieldItems)
-      return;
+      if (new Date(expires) > now && storageVacancies.length > 0 && storageFieldItems.length > 0) {
+        setVacancies(storageVacancies);
+        setFieldBitrixItems(storageFieldItems)
+        return;
+      }
     }
-  }
 
-  const vacanciesFromBackend = await fetchVacanciesFromHH();
-  const fieldItemsFromBackend = await fetchFieldItems("UF_CRM_1638524000");
+    const vacanciesFromBackend = await fetchVacanciesFromHH();
+    const fieldItemsFromBackend = await fetchFieldItems("UF_CRM_1638524000");
 
 
-  if (vacanciesFromBackend && vacanciesFromBackend.length > 0 && fieldItemsFromBackend && fieldItemsFromBackend.length > 0) {
-    localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify({
-      fieldItems: fieldItemsFromBackend,
-      vacancies: vacanciesFromBackend,
-      expires: now.setDate(now.getDate() + 1),
-    } as IVacanciesStorage));
+    if (vacanciesFromBackend && vacanciesFromBackend.length > 0 && fieldItemsFromBackend && fieldItemsFromBackend.length > 0) {
+      localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify({
+        fieldItems: fieldItemsFromBackend,
+        vacancies: vacanciesFromBackend,
+        expires: now.setDate(now.getDate() + 1),
+      } as IVacanciesStorage));
 
-    setVacancies(vacanciesFromBackend);
-    setFieldBitrixItems(fieldItemsFromBackend)
+      setVacancies(vacanciesFromBackend);
+      setFieldBitrixItems(fieldItemsFromBackend)
+    }
+    toast.add({
+      title: 'Изменения успешно обновлены',
+      icon: CheckIcon,
+      color: 'air-primary-success'
+    })
+  } catch (e) {
+    toast.add({
+      title: 'Ошибка обновления',
+      description: `${e}`,
+      icon: CrossIcon,
+      color: 'air-primary-success'
+    })
   }
 }
 
 onMounted(initComponent)
 
 const fetchVacanciesFromHH = async () => {
-  try {
-    const {data} = await API.get<IVacancy[]>('integration/headhunter/vacancies');
-    return data;
-  } catch (error) {
-    console.log('EXECUTION ERROR: ', error);
-  }
+  const {data} = await API.get<IVacancy[]>('integration/headhunter/vacancies');
+  return data;
 }
 
 const fetchFieldItems = async (fieldId: string) => {
-  try {
-    const {data} = await API.get<IFieldItem>(`deals/fields/field/${fieldId}`);
+  const {data} = await API.get<IFieldItem>(`deals/fields/field/${fieldId}`);
 
-    if (!data.items || data.items.length === 0) return [];
+  if (!data.items || data.items.length === 0) return [];
 
-    return data.items
-  } catch (error) {
-    console.log('EXECUTION ERROR: ', error);
-  }
+  return data.items
 }
 
 async function handleSubmitButton() {
-  const {value: originalVacancies} = vacancies;
+  try {
+    const {value: originalVacancies} = vacancies;
 
-  Object.entries(targetVacancies.value).forEach(([key, item]) => {
-    if (!item) return;
+    Object.entries(targetVacancies.value).forEach(([key, item]) => {
+      if (!item) return;
 
-    const vacancyIndex = originalVacancies.findIndex(({id}) => id === key);
+      const vacancyIndex = originalVacancies.findIndex(({id}) => id === key);
 
-    if (vacancyIndex === -1) return;
+      if (vacancyIndex === -1) return;
 
-    originalVacancies[vacancyIndex].bitrixField = {
-      ID: item!.value,
-      VALUE: item!.label,
-    } as IVacancyItem;
+      originalVacancies[vacancyIndex].bitrixField = {
+        ID: item!.value,
+        VALUE: item!.label,
+      } as IVacancyItem;
 
-    // clear items in select
-    targetVacancies.value[key] = [];
-  })
+      // clear items in select
+      targetVacancies.value[key] = [];
+    })
 
 
-  const {data: wasSaved} = await API.post<boolean>('integration/headhunter/vacancies', originalVacancies);
+    const {data: wasSaved} = await API.post<boolean>('integration/headhunter/vacancies', originalVacancies);
 
-  if (!wasSaved) return;
+    if (!wasSaved) return;
 
-  const originalVacanciesDecoded = localStorage.getItem(BITRIX_VACANCIES_KEY);
-  let expires = Date.now();
-  let fieldItems: IVacancyItem[] = [];
+    const originalVacanciesDecoded = localStorage.getItem(BITRIX_VACANCIES_KEY);
+    let expires = Date.now();
+    let fieldItems: IVacancyItem[] = [];
 
-  if (originalVacanciesDecoded) {
-    const originalVacanciesStorage = JSON.parse(originalVacanciesDecoded) as IVacanciesStorage;
+    if (originalVacanciesDecoded) {
+      const originalVacanciesStorage = JSON.parse(originalVacanciesDecoded) as IVacanciesStorage;
 
-    expires = originalVacanciesStorage.expires;
-    fieldItems = originalVacanciesStorage.fieldItems;
+      expires = originalVacanciesStorage.expires;
+      fieldItems = originalVacanciesStorage.fieldItems;
+    }
+
+
+    localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify({
+      vacancies: originalVacancies,
+      expires: expires,
+      fieldItems: fieldItems
+    } as IVacanciesStorage));
+
+    setVacancies(originalVacancies);
+    setFieldBitrixItems(fieldItems)
+
+    toast.add({
+      title: 'Изменения успешно сохранены',
+      icon: CheckIcon,
+      color: 'air-primary-success'
+    })
+  } catch (e) {
+    toast.add({
+      title: 'Ошибка сохранения',
+      description: `${e}`,
+      icon: CheckIcon,
+      color: 'air-primary-alert'
+    })
   }
-
-
-  localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify({
-    vacancies: originalVacancies,
-    expires: expires,
-    fieldItems: fieldItems
-  } as IVacanciesStorage));
-
-  setVacancies(originalVacancies);
-  setFieldBitrixItems(fieldItems)
 }
 
 function setVacancies(items: IVacancy[]) {
@@ -200,10 +223,6 @@ async function reinitComponent() {
   localStorage.removeItem(BITRIX_VACANCIES_KEY);
 
   await initComponent();
-  isAlert.value = true;
-  setTimeout(() => {
-    isAlert.value = false;
-  }, 3000)
 
   return true;
 }

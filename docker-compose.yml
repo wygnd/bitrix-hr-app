@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bitrix-frontend-hr-app
+    restart: always
+    ports:
+      - '8080:8081'
