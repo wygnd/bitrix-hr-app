@@ -1,8 +1,9 @@
 FROM node:lts-alpine AS build-stage
-
 WORKDIR /app
-COPY package*.json ./
-RUN pnpm install
+COPY package*.json pnpm-lock.yaml ./
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
+RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run build
 
