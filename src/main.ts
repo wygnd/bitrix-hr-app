@@ -22,7 +22,7 @@ if (!auth || auth !== import.meta.env.VITE_BITRIX_TOKEN) {
 }
 
 const router = createRouter({
-	history: createWebHistory(),
+	history: createWebHistory('/hr-app'),
 	routes: routes,
 })
 
