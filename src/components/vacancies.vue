@@ -78,11 +78,6 @@ const initComponent = async () => {
       setVacancies(vacanciesFromBackend);
       setFieldBitrixItems(fieldItemsFromBackend)
     }
-    toast.add({
-      title: 'Изменения успешно обновлены',
-      icon: CheckIcon,
-      color: 'air-primary-success'
-    })
   } catch (e) {
     toast.add({
       title: 'Ошибка обновления',
@@ -220,11 +215,25 @@ const handleClickClearExistsVacancies = (event: Event) => {
 }
 
 async function reinitComponent() {
-  localStorage.removeItem(BITRIX_VACANCIES_KEY);
+  try {
+    localStorage.removeItem(BITRIX_VACANCIES_KEY);
 
-  await initComponent();
+    await initComponent();
 
-  return true;
+    toast.add({
+      title: 'Изменения успешно обновлены',
+      icon: CheckIcon,
+      color: 'air-primary-success'
+    })
+    return true;
+  } catch (e) {
+    toast.add({
+      title: 'Ошибка восстановлении данных',
+      description: `${e}`,
+      icon: CheckIcon,
+      color: 'air-primary-alert'
+    })
+  }
 }
 </script>
 
