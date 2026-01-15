@@ -258,6 +258,12 @@ const handleClickClearExistsVacancies = async (event: Event) => {
     await API.patch<{
       status: boolean
     }>(`integration/headhunter/vacancies/${vacancyId}`, updateVacancyFields);
+
+    toast.add({
+      title: 'Вакансия обновлена',
+      icon: CheckIcon,
+      color: 'air-primary-success'
+    })
   } catch (e) {
     toast.add({
       title: 'Ошибка изменения вакансии',
@@ -314,7 +320,8 @@ async function reinitComponent() {
               {{ bitrixField.value }}
             </li>
             <li class="text-base font-bold w-full">
-              <span class="underline cursor-pointer hover:text-red transition-colors" :data-row="id" :data-vacancy="vacancyId"
+              <span class="underline cursor-pointer hover:text-red transition-colors" :data-row="id"
+                    :data-vacancy="vacancyId"
                     @click="handleClickClearExistsVacancies">Отчистить</span>
             </li>
           </ul>
