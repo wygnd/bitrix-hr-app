@@ -13,12 +13,13 @@ const targetVacancies = ref<Record<string, SelectMenuItem | null>>({});
 const toast = useToast();
 
 type IVacancyItem = {
-  ID: string;
-  VALUE: string;
+  id: string;
+  value: string;
 }
 
 interface IVacancy {
-  id: string;
+  id: number;
+  vacancyId: string;
   label: string;
   url: string;
   bitrixField: IVacancyItem | null;
@@ -45,6 +46,11 @@ interface IVacanciesStorage {
   vacancies: IVacancy[];
 }
 
+interface IVacancyUpdate {
+  id: number,
+  fields: Partial<IVacancy>
+}
+
 const initComponent = async () => {
   try {
     const vacanciesFromLocalStorage = localStorage.getItem(BITRIX_VACANCIES_KEY);
@@ -66,7 +72,6 @@ const initComponent = async () => {
 
     const vacanciesFromBackend = await fetchVacanciesFromHH();
     const fieldItemsFromBackend = await fetchFieldItems("UF_CRM_1638524000");
-
 
     if (vacanciesFromBackend && vacanciesFromBackend.length > 0 && fieldItemsFromBackend && fieldItemsFromBackend.length > 0) {
       localStorage.setItem(BITRIX_VACANCIES_KEY, JSON.stringify({
@@ -105,18 +110,34 @@ const fetchFieldItems = async (fieldId: string) => {
 
 async function handleSubmitButton() {
   try {
+    // Получаем оригиналиные вакансии
     const {value: originalVacancies} = vacancies;
+    const vacanciesNeedUpdate: IVacancyUpdate[] = [];
 
     Object.entries(targetVacancies.value).forEach(([key, item]) => {
       if (!item) return;
-
-      const vacancyIndex = originalVacancies.findIndex(({id}) => id === key);
+      console.log(item)
+      const vacancyIndex = originalVacancies.findIndex(({id}) => id == item!.vacancyId);
 
       if (vacancyIndex === -1) return;
 
+      const originalVacancy = originalVacancies[vacancyIndex];
+
+      if (originalVacancy.bitrixField?.id !== item!.value) {
+        vacanciesNeedUpdate.push({
+          id: Number(originalVacancy.id),
+          fields: {
+            bitrixField: {
+              id: item!.value,
+              value: item!.label,
+            }
+          }
+        });
+      }
+
       originalVacancies[vacancyIndex].bitrixField = {
-        ID: item!.value,
-        VALUE: item!.label,
+        id: item!.value,
+        value: item!.label,
       } as IVacancyItem;
 
       // clear items in select
@@ -124,9 +145,26 @@ async function handleSubmitButton() {
     })
 
 
-    const {data: wasSaved} = await API.post<boolean>('integration/headhunter/vacancies', originalVacancies);
+    if (vacanciesNeedUpdate.length === 0) {
+      toast.add({
+        title: 'Пожалуйста, измените вакансии, чтобы сохранить',
+        icon: CheckIcon,
+        color: 'air-primary-warning'
+      })
+      return;
+    }
+    const {data: wasSaved} = await API.patch<{
+      status: boolean
+    }>('integration/headhunter/vacancies/bulk/update', vacanciesNeedUpdate);
 
-    if (!wasSaved) return;
+    if (!wasSaved.status) {
+      toast.add({
+        title: 'Возникла ошибка при сохранении',
+        icon: CheckIcon,
+        color: 'air-primary-alert'
+      })
+      return
+    }
 
     const originalVacanciesDecoded = localStorage.getItem(BITRIX_VACANCIES_KEY);
     let expires = Date.now();
@@ -156,7 +194,7 @@ async function handleSubmitButton() {
     })
   } catch (e) {
     toast.add({
-      title: 'Ошибка сохранения',
+      title: 'Непредвиденая ошибка сохранения',
       description: `${e}`,
       icon: CheckIcon,
       color: 'air-primary-alert'
@@ -172,19 +210,7 @@ function setFieldBitrixItems(items: IVacancyItem[]) {
   fieldBitrixItems.value = items.map(({ID, VALUE}) => ({
     label: VALUE,
     value: ID,
-    color: 'air-primary',
-    // onSelect: (e: Event) => {
-    //   const item = e!.detail.value as SelectMenuItem;
-    //
-    //   const vacancyIndex = vacancies.value.findIndex(v => v.id === item!.vacancyId);
-    //
-    //   if (!vacancyIndex) return;
-    //
-    //   vacancies.value[vacancyIndex].bitrixField = {
-    //     ID: item!.value,
-    //     VALUE: item!.label,
-    //   }
-    // }
+    color: 'air-primary'
   })) as SelectMenuItem[];
 }
 
@@ -207,9 +233,18 @@ const handleClickClearExistsVacancies = (event: Event) => {
 
   const vacancyId = element.dataset.vacancy;
 
-  const vacancyIndex = vacancies.value.findIndex(v => v.id === vacancyId);
+  console.log(vacancies.value, vacancyId)
 
-  if (vacancyIndex === -1) return;
+  const vacancyIndex = vacancies.value.findIndex(v => v.vacancyId === vacancyId);
+
+  if (vacancyIndex === -1) {
+    toast.add({
+      title: 'Не удалось отчистить поле',
+      icon: CheckIcon,
+      color: 'air-primary-warning'
+    })
+    return
+  }
 
   vacancies.value[vacancyIndex].bitrixField = null;
 }
@@ -243,7 +278,7 @@ async function reinitComponent() {
       Вакансии
     </h1>
     <ul class="grid grid-cols-3 gap-2.5">
-      <li v-for="({id, url, label, bitrixField}) in vacancies" :id="id"
+      <li v-for="({id, vacancyId, url, label, bitrixField}) in vacancies" :id="id.toString()"
           class="flex flex-col w-full items-start justify-between gap-5 p-3 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <div class="">
           <a
@@ -256,11 +291,11 @@ async function reinitComponent() {
           <ul v-if="bitrixField"
               class="mt-2 flex flex-wrap items-center gap-2 gap-y-0.5 text-black dark:text-white">
             <li class="text-base font-bold">Выбрано:</li>
-            <li :id="bitrixField.ID" class="text-base text-black ">
-              {{ bitrixField.VALUE }}
+            <li :id="bitrixField.id" class="text-base text-black ">
+              {{ bitrixField.value }}
             </li>
             <li class="text-base font-bold w-full">
-              <span class="underline cursor-pointer hover:text-red transition-colors" :data-vacancy="id"
+              <span class="underline cursor-pointer hover:text-red transition-colors" :data-vacancy="vacancyId"
                     @click="handleClickClearExistsVacancies">Очистить</span>
             </li>
           </ul>
@@ -268,7 +303,7 @@ async function reinitComponent() {
         </div>
         <div class="flex items-center justify-between gap-2 relative w-full" id="check">
           <B24SelectMenu
-              :id="id"
+              :id="id.toString()"
               v-model="targetVacancies[id]"
               :items="fieldBitrixItems.map(vacancy => ({...vacancy, vacancyId: id}))"
               placeholder="Выберите вакансии"
