@@ -6,6 +6,7 @@ import type {SelectMenuItem} from '@bitrix24/b24ui-nuxt'
 import TrashcanIcon from '@bitrix24/b24icons-vue/outline/TrashcanIcon'
 import CheckIcon from '@bitrix24/b24icons-vue/main/CheckIcon'
 import CrossIcon from '@bitrix24/b24icons-vue/actions/Cross50Icon'
+import axios from "axios";
 
 const fieldBitrixItems = ref<SelectMenuItem[]>([]);
 const vacancies = ref<IVacancy[]>([]);
@@ -116,7 +117,7 @@ async function handleSubmitButton() {
 
     Object.entries(targetVacancies.value).forEach(([key, item]) => {
       if (!item) return;
-      console.log(item)
+
       const vacancyIndex = originalVacancies.findIndex(({id}) => id == item!.vacancyId);
 
       if (vacancyIndex === -1) return;
@@ -143,7 +144,6 @@ async function handleSubmitButton() {
       // clear items in select
       targetVacancies.value[key] = [];
     })
-
 
     if (vacanciesNeedUpdate.length === 0) {
       toast.add({
@@ -226,27 +226,46 @@ const handleClickClearTargetVacancies = (event: Event) => {
   targetVacancies.value[vacancyId] = null;
 }
 
-const handleClickClearExistsVacancies = (event: Event) => {
-  const element = event.target as HTMLSpanElement
+const handleClickClearExistsVacancies = async (event: Event) => {
+  try {
+    const element = event.target as HTMLSpanElement
 
-  if (!('vacancy' in element.dataset) || !element.dataset.vacancy) return;
+    if (!('vacancy' in element.dataset) || !element.dataset.vacancy) return;
 
-  const vacancyId = element.dataset.vacancy;
+    const vacancyId = element.dataset.vacancy;
+    const vacancyRowId = element.dataset.row;
 
-  console.log(vacancies.value, vacancyId)
+    const vacancyIndex = vacancies.value.findIndex(v => v.vacancyId === vacancyId);
 
-  const vacancyIndex = vacancies.value.findIndex(v => v.vacancyId === vacancyId);
+    if (vacancyIndex === -1) {
+      toast.add({
+        title: 'Не удалось отчистить поле',
+        icon: CheckIcon,
+        color: 'air-primary-warning'
+      })
+      return
+    }
 
-  if (vacancyIndex === -1) {
+    vacancies.value[vacancyIndex].bitrixField = null;
+
+    const updateVacancyFields: IVacancyUpdate = {
+      id: Number(vacancyRowId),
+      fields: {
+        bitrixField: null
+      }
+    };
+
+    await API.patch<{
+      status: boolean
+    }>(`integration/headhunter/vacancies/${vacancyId}`, updateVacancyFields);
+  } catch (e) {
     toast.add({
-      title: 'Не удалось отчистить поле',
+      title: 'Ошибка изменения вакансии',
+      description: `${e}`,
       icon: CheckIcon,
-      color: 'air-primary-warning'
+      color: 'air-primary-alert'
     })
-    return
   }
-
-  vacancies.value[vacancyIndex].bitrixField = null;
 }
 
 async function reinitComponent() {
@@ -267,7 +286,7 @@ async function reinitComponent() {
       description: `${e}`,
       icon: CheckIcon,
       color: 'air-primary-alert'
-    })
+    });
   }
 }
 </script>
@@ -295,8 +314,8 @@ async function reinitComponent() {
               {{ bitrixField.value }}
             </li>
             <li class="text-base font-bold w-full">
-              <span class="underline cursor-pointer hover:text-red transition-colors" :data-vacancy="vacancyId"
-                    @click="handleClickClearExistsVacancies">Очистить</span>
+              <span class="underline cursor-pointer hover:text-red transition-colors" :data-row="id" :data-vacancy="vacancyId"
+                    @click="handleClickClearExistsVacancies">Отчистить</span>
             </li>
           </ul>
 
